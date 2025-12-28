@@ -893,6 +893,710 @@ messages (
 
 ---
 
+---
+
+## 16. Cas d'Usage Détaillés
+
+### 16.1 Scénario Agriculteur
+
+#### 16.1.1 Recherche et Location d'Équipement
+**Acteur** : Mamadou, agriculteur à Kindia
+
+**Objectif** : Louer un tracteur pour labourer 5 hectares
+
+**Flux nominal** :
+1. Mamadou accède à AGNexum via son mobile
+2. Il recherche "tracteur" avec localisation "Kindia"
+3. Il filtre par puissance (minimum 50 CV) et prix (max 500 000 GNF/jour)
+4. Il consulte 3 fiches équipements avec photos et avis
+5. Il sélectionne un tracteur John Deere noté 4.8/5
+6. Il vérifie la disponibilité pour la semaine prochaine
+7. Il envoie une demande de réservation avec son message
+8. Le propriétaire accepte dans les 2 heures
+9. Mamadou paie 50% d'acompte via Orange Money
+10. Il récupère le tracteur au lieu convenu
+11. Après utilisation, il paie le solde et note le propriétaire
+
+**Flux alternatifs** :
+- Équipement non disponible : Suggestions d'alternatives
+- Prix trop élevé : Négociation via messagerie
+- Problème technique : Contact du support
+
+#### 16.1.2 Demande de Financement
+**Acteur** : Fatima, agricultrice souhaitant acheter un équipement
+
+**Objectif** : Obtenir un prêt pour acheter une moissonneuse
+
+**Flux nominal** :
+1. Fatima accède à la section Financement
+2. Elle remplit le formulaire de demande (montant, durée, usage)
+3. Elle upload ses documents (pièce d'identité, justificatifs revenus)
+4. Le système évalue automatiquement son profil
+5. Elle reçoit 3 propositions de financeurs sous 48h
+6. Elle compare les offres (taux, durée, conditions)
+7. Elle sélectionne l'offre la plus avantageuse
+8. Elle complète le dossier avec documents additionnels
+9. Le financeur valide en 5 jours
+10. Elle reçoit les fonds et achète l'équipement
+
+### 16.2 Scénario Propriétaire d'Équipement
+
+#### 16.2.1 Mise en Location d'un Équipement
+**Acteur** : Ibrahim, propriétaire d'une moissonneuse
+
+**Objectif** : Rentabiliser son équipement en le louant
+
+**Flux nominal** :
+1. Ibrahim crée un compte Propriétaire
+2. Il vérifie son identité (upload CNI + selfie)
+3. Il clique sur "Ajouter un équipement"
+4. Il remplit le formulaire détaillé :
+   - Catégorie, marque, modèle, année
+   - État, puissance, spécifications
+   - Tarifs (jour, semaine, mois)
+   - Localisation précise
+5. Il upload 5 photos de qualité
+6. Il définit les disponibilités sur le calendrier
+7. Il publie l'annonce après validation
+8. Il reçoit des demandes de location
+9. Il accepte/refuse selon ses critères
+10. Il perçoit les paiements automatiquement
+11. Il accumule des notes et avis positifs
+
+#### 16.2.2 Gestion des Locations
+**Acteur** : Ibrahim, propriétaire
+
+**Objectif** : Gérer efficacement ses locations en cours
+
+**Flux nominal** :
+1. Ibrahim accède à son Dashboard
+2. Il voit 3 locations actives, 2 demandes en attente
+3. Il consulte le calendrier de disponibilité
+4. Il communique via chat avec les locataires
+5. Il valide la restitution de l'équipement
+6. Il note le locataire et laisse un commentaire
+7. Il consulte ses statistiques de revenus
+8. Il télécharge son relevé mensuel
+
+### 16.3 Scénario Fabricant
+
+#### 16.3.1 Promotion de Nouveaux Équipements
+**Acteur** : Jean, représentant d'un fabricant
+
+**Objectif** : Promouvoir une nouvelle gamme de tracteurs
+
+**Flux nominal** :
+1. Jean crée un compte Fabricant vérifié
+2. Il accède au catalogue produits
+3. Il ajoute 5 modèles de tracteurs avec :
+   - Fiches techniques complètes
+   - Photos haute qualité
+   - Vidéos de démonstration
+   - Prix et options de financement
+4. Il crée une campagne promotionnelle
+5. Il définit les zones géographiques ciblées
+6. Il publie des actualités produits
+7. Il reçoit des demandes de devis
+8. Il répond et négocie directement
+9. Il suit les conversions et ventes
+
+### 16.4 Scénario Financeur
+
+#### 16.4.1 Évaluation de Demandes de Financement
+**Acteur** : Marie, analyste crédit
+
+**Objectif** : Évaluer et approuver des demandes de prêt
+
+**Flux nominal** :
+1. Marie accède au portail Financeur
+2. Elle voit 10 nouvelles demandes
+3. Elle filtre par montant et profil risque
+4. Elle sélectionne une demande de 10M GNF
+5. Elle consulte le profil du demandeur :
+   - Historique de transactions
+   - Score de crédit
+   - Documents justificatifs
+6. Elle analyse la viabilité du projet
+7. Elle fait une offre personnalisée
+8. Elle négocie les conditions
+9. Elle approuve le dossier
+10. Elle suit le remboursement mensuel
+
+---
+
+## 17. Schéma de Base de Données Complet
+
+### 17.1 Tables Principales
+
+#### 17.1.1 Table Users
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  phone TEXT UNIQUE,
+  name TEXT NOT NULL,
+  avatar_url TEXT,
+  location JSONB, -- {city, region, country, coordinates}
+  roles TEXT[] DEFAULT ARRAY['farmer'],
+  verified BOOLEAN DEFAULT false,
+  kyc_status TEXT DEFAULT 'pending', -- pending, verified, rejected
+  rating DECIMAL(3,2) DEFAULT 0,
+  review_count INTEGER DEFAULT 0,
+  language TEXT DEFAULT 'fr',
+  metadata JSONB, -- Données additionnelles flexibles
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  last_login TIMESTAMPTZ
+);
+
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_location ON users USING GIN(location);
+CREATE INDEX idx_users_roles ON users USING GIN(roles);
+```
+
+#### 17.1.2 Table Equipment
+```sql
+CREATE TABLE equipment (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  category TEXT NOT NULL, -- tractor, harvester, seeder, etc.
+  brand TEXT NOT NULL,
+  model TEXT,
+  year INTEGER,
+  condition TEXT NOT NULL, -- excellent, good, fair
+  images TEXT[] NOT NULL,
+  daily_rate INTEGER NOT NULL,
+  weekly_rate INTEGER,
+  monthly_rate INTEGER,
+  location JSONB NOT NULL,
+  coordinates GEOGRAPHY(POINT),
+  available BOOLEAN DEFAULT true,
+  features TEXT[],
+  specifications JSONB,
+  view_count INTEGER DEFAULT 0,
+  favorite_count INTEGER DEFAULT 0,
+  booking_count INTEGER DEFAULT 0,
+  rating DECIMAL(3,2) DEFAULT 0,
+  review_count INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'active', -- active, inactive, maintenance, sold
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_equipment_owner ON equipment(owner_id);
+CREATE INDEX idx_equipment_category ON equipment(category);
+CREATE INDEX idx_equipment_location ON equipment USING GIST(coordinates);
+CREATE INDEX idx_equipment_available ON equipment(available) WHERE available = true;
+CREATE INDEX idx_equipment_created ON equipment(created_at DESC);
+```
+
+#### 17.1.3 Table Bookings
+```sql
+CREATE TABLE bookings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id UUID REFERENCES equipment(id) ON DELETE CASCADE,
+  farmer_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  duration_days INTEGER GENERATED ALWAYS AS (end_date - start_date + 1) STORED,
+  base_cost INTEGER NOT NULL,
+  deposit_amount INTEGER,
+  insurance_cost INTEGER DEFAULT 0,
+  service_fee INTEGER DEFAULT 0,
+  total_cost INTEGER NOT NULL,
+  status TEXT DEFAULT 'pending', -- pending, accepted, rejected, active, completed, cancelled
+  payment_status TEXT DEFAULT 'pending', -- pending, partial, paid, refunded
+  payment_method TEXT,
+  delivery_method TEXT, -- pickup, delivery
+  delivery_address JSONB,
+  notes TEXT,
+  cancellation_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  accepted_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+
+  CONSTRAINT booking_dates_valid CHECK (end_date >= start_date)
+);
+
+CREATE INDEX idx_bookings_equipment ON bookings(equipment_id);
+CREATE INDEX idx_bookings_farmer ON bookings(farmer_id);
+CREATE INDEX idx_bookings_status ON bookings(status);
+CREATE INDEX idx_bookings_dates ON bookings(start_date, end_date);
+```
+
+#### 17.1.4 Table Reviews
+```sql
+CREATE TABLE reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE UNIQUE,
+  reviewer_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  target_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  target_type TEXT NOT NULL, -- farmer, owner, equipment
+  rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  criteria JSONB, -- {cleanliness, communication, condition, etc.}
+  images TEXT[],
+  helpful_count INTEGER DEFAULT 0,
+  response TEXT,
+  response_date TIMESTAMPTZ,
+  status TEXT DEFAULT 'published', -- published, hidden, flagged
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_reviews_target ON reviews(target_id, target_type);
+CREATE INDEX idx_reviews_booking ON reviews(booking_id);
+CREATE INDEX idx_reviews_rating ON reviews(rating);
+```
+
+#### 17.1.5 Table Messages
+```sql
+CREATE TABLE conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  participant_1 UUID REFERENCES users(id) ON DELETE CASCADE,
+  participant_2 UUID REFERENCES users(id) ON DELETE CASCADE,
+  booking_id UUID REFERENCES bookings(id),
+  last_message_at TIMESTAMPTZ DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now(),
+
+  CONSTRAINT unique_conversation UNIQUE(participant_1, participant_2, booking_id)
+);
+
+CREATE TABLE messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  attachments JSONB,
+  read BOOLEAN DEFAULT false,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_messages_conversation ON messages(conversation_id, created_at DESC);
+CREATE INDEX idx_messages_sender ON messages(sender_id);
+CREATE INDEX idx_messages_unread ON messages(read) WHERE read = false;
+```
+
+#### 17.1.6 Table Payments
+```sql
+CREATE TABLE payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
+  payer_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  receiver_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  amount INTEGER NOT NULL,
+  payment_type TEXT NOT NULL, -- deposit, balance, refund
+  payment_method TEXT NOT NULL, -- mobile_money, card, bank_transfer
+  provider TEXT, -- orange_money, mtn, stripe, etc.
+  provider_reference TEXT,
+  status TEXT DEFAULT 'pending', -- pending, processing, completed, failed, refunded
+  metadata JSONB,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_payments_booking ON payments(booking_id);
+CREATE INDEX idx_payments_payer ON payments(payer_id);
+CREATE INDEX idx_payments_status ON payments(status);
+```
+
+#### 17.1.7 Table Financing
+```sql
+CREATE TABLE financing_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  applicant_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  equipment_type TEXT NOT NULL,
+  amount_requested INTEGER NOT NULL,
+  purpose TEXT NOT NULL,
+  loan_term_months INTEGER NOT NULL,
+  business_plan TEXT,
+  documents JSONB,
+  credit_score INTEGER,
+  risk_level TEXT, -- low, medium, high
+  status TEXT DEFAULT 'pending', -- pending, under_review, approved, rejected
+  reviewed_by UUID REFERENCES users(id),
+  review_notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE financing_offers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id UUID REFERENCES financing_requests(id) ON DELETE CASCADE,
+  funder_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  amount_offered INTEGER NOT NULL,
+  interest_rate DECIMAL(5,2) NOT NULL,
+  loan_term_months INTEGER NOT NULL,
+  monthly_payment INTEGER NOT NULL,
+  conditions TEXT,
+  status TEXT DEFAULT 'pending', -- pending, accepted, rejected, expired
+  valid_until TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+
+  CONSTRAINT financing_positive_terms CHECK (
+    amount_offered > 0 AND
+    interest_rate >= 0 AND
+    loan_term_months > 0
+  )
+);
+```
+
+#### 17.1.8 Table Favorites
+```sql
+CREATE TABLE favorites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  equipment_id UUID REFERENCES equipment(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+
+  CONSTRAINT unique_favorite UNIQUE(user_id, equipment_id)
+);
+
+CREATE INDEX idx_favorites_user ON favorites(user_id);
+CREATE INDEX idx_favorites_equipment ON favorites(equipment_id);
+```
+
+#### 17.1.9 Table Notifications
+```sql
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL, -- booking, message, payment, review, etc.
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  data JSONB,
+  read BOOLEAN DEFAULT false,
+  read_at TIMESTAMPTZ,
+  action_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_notifications_user ON notifications(user_id, created_at DESC);
+CREATE INDEX idx_notifications_unread ON notifications(user_id, read) WHERE read = false;
+```
+
+#### 17.1.10 Table Analytics Events
+```sql
+CREATE TABLE analytics_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  session_id TEXT,
+  event_type TEXT NOT NULL, -- page_view, search, booking_attempt, etc.
+  event_data JSONB,
+  device_info JSONB,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_analytics_user ON analytics_events(user_id, created_at DESC);
+CREATE INDEX idx_analytics_type ON analytics_events(event_type, created_at DESC);
+CREATE INDEX idx_analytics_session ON analytics_events(session_id);
+```
+
+### 17.2 Row Level Security (RLS) Policies
+
+#### 17.2.1 Users Table Policies
+```sql
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- Users can view all public profiles
+CREATE POLICY "Users can view public profiles"
+  ON users FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile"
+  ON users FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+```
+
+#### 17.2.2 Equipment Table Policies
+```sql
+ALTER TABLE equipment ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can view active equipment
+CREATE POLICY "Anyone can view active equipment"
+  ON equipment FOR SELECT
+  USING (status = 'active' AND available = true);
+
+-- Owners can insert their own equipment
+CREATE POLICY "Owners can insert equipment"
+  ON equipment FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = owner_id);
+
+-- Owners can update their own equipment
+CREATE POLICY "Owners can update own equipment"
+  ON equipment FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = owner_id)
+  WITH CHECK (auth.uid() = owner_id);
+
+-- Owners can delete their own equipment
+CREATE POLICY "Owners can delete own equipment"
+  ON equipment FOR DELETE
+  TO authenticated
+  USING (auth.uid() = owner_id);
+```
+
+#### 17.2.3 Bookings Table Policies
+```sql
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+
+-- Users can view their own bookings (as farmer or owner)
+CREATE POLICY "Users can view own bookings"
+  ON bookings FOR SELECT
+  TO authenticated
+  USING (
+    auth.uid() = farmer_id OR
+    auth.uid() IN (SELECT owner_id FROM equipment WHERE id = equipment_id)
+  );
+
+-- Farmers can create bookings
+CREATE POLICY "Farmers can create bookings"
+  ON bookings FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = farmer_id);
+
+-- Farmers and owners can update bookings
+CREATE POLICY "Participants can update bookings"
+  ON bookings FOR UPDATE
+  TO authenticated
+  USING (
+    auth.uid() = farmer_id OR
+    auth.uid() IN (SELECT owner_id FROM equipment WHERE id = equipment_id)
+  )
+  WITH CHECK (
+    auth.uid() = farmer_id OR
+    auth.uid() IN (SELECT owner_id FROM equipment WHERE id = equipment_id)
+  );
+```
+
+---
+
+## 18. KPIs et Métriques de Succès
+
+### 18.1 Métriques Produit
+
+#### 18.1.1 Acquisition
+- **Nouveaux utilisateurs** : Objectif 1000/mois en An 1
+- **Taux de conversion** inscription : > 25%
+- **Coût d'acquisition client** (CAC) : < 20€
+- **Canaux d'acquisition** : Tracking par source
+- **Taux de rebond** : < 40%
+
+#### 18.1.2 Activation
+- **Temps jusqu'à première action** : < 5 minutes
+- **Taux de complétion profil** : > 70%
+- **Taux de vérification identité** : > 60%
+- **Première recherche** : > 80% des inscrits
+- **Ajout premier équipement** (propriétaires) : > 50%
+
+#### 18.1.3 Engagement
+- **Utilisateurs actifs mensuels** (MAU) : Objectif 2500 An 1
+- **Ratio DAU/MAU** : > 20%
+- **Sessions par utilisateur** : > 3/semaine
+- **Durée moyenne session** : > 5 minutes
+- **Pages vues par session** : > 4
+
+#### 18.1.4 Rétention
+- **Rétention J1** : > 40%
+- **Rétention J7** : > 20%
+- **Rétention J30** : > 10%
+- **Taux de churn mensuel** : < 5%
+- **Taux de réactivation** : > 15%
+
+#### 18.1.5 Revenus
+- **Transactions par mois** : Objectif 100 en An 1
+- **Valeur moyenne transaction** : 750 000 GNF
+- **Take rate** (commission) : 7%
+- **Revenus mensuels récurrents** (MRR) : Croissance 20%/mois
+- **Lifetime Value** (LTV) : > 3x CAC
+
+### 18.2 Métriques Business
+
+#### 18.2.1 Marketplace
+- **Équipements listés** : Objectif 500 en An 1
+- **Taux de remplissage** équipements : > 60%
+- **Taux d'acceptation** réservations : > 70%
+- **Délai moyen réponse** propriétaires : < 6h
+- **Taux de conversion** recherche → réservation : > 5%
+
+#### 18.2.2 Satisfaction
+- **Net Promoter Score** (NPS) : > 50
+- **Note moyenne plateforme** : > 4.5/5
+- **Taux de satisfaction** support : > 90%
+- **Taux de résolution** premier contact : > 60%
+- **Score satisfaction paiement** : > 4/5
+
+#### 18.2.3 Qualité
+- **Taux d'annulation** : < 5%
+- **Taux de litiges** : < 2%
+- **Taux de fraude** : < 0.5%
+- **Taux de retard paiement** : < 3%
+- **Taux de problème équipement** : < 5%
+
+### 18.3 Métriques Techniques
+
+#### 18.3.1 Performance
+- **Page load time** (P95) : < 2.5s
+- **Time to Interactive** : < 3s
+- **API response time** (P95) : < 500ms
+- **Database query time** (P95) : < 100ms
+- **Error rate** : < 0.1%
+
+#### 18.3.2 Disponibilité
+- **Uptime** : > 99.9%
+- **MTTR** (Mean Time To Repair) : < 30 minutes
+- **MTBF** (Mean Time Between Failures) : > 720h
+- **Incident critical** : < 1/mois
+- **Planned downtime** : < 2h/mois
+
+#### 18.3.3 Sécurité
+- **Vulnérabilités critiques** : 0
+- **Temps de patch** vulnérabilité : < 24h
+- **Tentatives d'intrusion** bloquées : 100%
+- **Taux de faux positifs** sécurité : < 1%
+- **Audits sécurité** : 2/an
+
+---
+
+## 19. Plan Marketing et Go-to-Market
+
+### 19.1 Stratégie Marketing
+
+#### 19.1.1 Positionnement
+**Proposition de Valeur Unique** :
+"AGNexum démocratise l'accès aux équipements agricoles modernes en Afrique de l'Ouest grâce à une plateforme digitale sécurisée, simple et adaptée aux réalités locales."
+
+**Segments Cibles** :
+1. **Agriculteurs** (18-55 ans, petites/moyennes exploitations)
+2. **Propriétaires** (Coopératives, agriculteurs équipés, entrepreneurs)
+3. **Fabricants** (Marques agricoles internationales et locales)
+4. **Financeurs** (Banques, microfinance, fonds d'investissement)
+
+#### 19.1.2 Canaux d'Acquisition
+
+**Digital** :
+- **SEO Local** : Optimisation pour recherches locales
+- **Google Ads** : Campagnes ciblées par région
+- **Facebook/Instagram** : Contenu éducatif et success stories
+- **WhatsApp Business** : Support et acquisition
+- **YouTube** : Tutoriels et témoignages
+
+**Terrain** :
+- **Partenariats coopératives** agricoles
+- **Événements agricoles** : Salons, foires
+- **Agents locaux** : Programme d'ambassadeurs
+- **Radio locale** : Spots dans zones rurales
+- **Affichage** : Marchés, centres agricoles
+
+#### 19.1.3 Stratégie de Contenu
+- **Blog** : Guides pratiques agriculture
+- **Podcast** : Interviews d'agriculteurs
+- **Newsletter** : Conseils hebdomadaires
+- **Success Stories** : Témoignages vidéo
+- **Webinaires** : Formation utilisateurs
+
+### 19.2 Plan de Lancement
+
+#### 19.2.1 Phase Pre-Launch (Mois -2 à 0)
+- **Teasing** campagne : Mystère et anticipation
+- **Landing page** avec inscription early access
+- **Programme beta** : 50 testeurs privilégiés
+- **Relations presse** : Articles médias agricoles
+- **Partenariats** : Signature avec 3 coopératives
+
+#### 19.2.2 Phase Launch (Mois 1-3)
+- **Event de lancement** : Conférence de presse
+- **Campagne digitale** : Budget 5000€/mois
+- **Promotions** : 0% commission 1er mois
+- **Concours** : Meilleur témoignage récompensé
+- **Influenceurs** : 5 leaders d'opinion agricoles
+
+#### 19.2.3 Phase Growth (Mois 4-12)
+- **Scaling** : Expansion géographique
+- **Retargeting** : Utilisateurs inactifs
+- **Referral program** : Parrainage récompensé
+- **Content marketing** : SEO et autorité
+- **Partnerships** : Fabricants et financeurs
+
+### 19.3 Budget Marketing Année 1
+
+| Canal | Budget Mensuel | Budget Annuel | Objectif |
+|-------|---------------|---------------|----------|
+| Google Ads | 1000€ | 12 000€ | 300 inscrits/mois |
+| Facebook/Instagram | 800€ | 9 600€ | 250 inscrits/mois |
+| SEO/Content | 500€ | 6 000€ | 150 inscrits/mois |
+| Events/Terrain | 1000€ | 12 000€ | 200 inscrits/mois |
+| Influenceurs | 500€ | 6 000€ | 100 inscrits/mois |
+| Email Marketing | 200€ | 2 400€ | Rétention |
+| **TOTAL** | **4000€** | **48 000€** | **1000 inscrits/mois** |
+
+---
+
+## 20. Accessibilité et Inclusion
+
+### 20.1 Standards d'Accessibilité
+
+#### 20.1.1 WCAG 2.1 Level AA
+- **Contraste** : Ratio minimum 4.5:1
+- **Taille texte** : Minimum 16px, agrandissement 200%
+- **Navigation clavier** : Tous éléments accessibles
+- **Screen readers** : ARIA labels complets
+- **Focus visible** : Indication claire
+
+#### 20.1.2 Accessibilité Mobile
+- **Touch targets** : Minimum 44x44px
+- **Gestures** : Alternatives pour swipes complexes
+- **Orientation** : Support portrait et landscape
+- **Zoom** : Jusqu'à 400% sans perte
+- **Haptic feedback** : Retours tactiles
+
+### 20.2 Multilinguisme
+
+#### 20.2.1 Langues Supportées
+**Phase 1** :
+- Français (principal)
+- Anglais (secondaire)
+
+**Phase 2** :
+- Soussou (Guinée)
+- Peul (Guinée/Mali)
+- Bambara (Mali)
+- Wolof (Sénégal)
+
+#### 20.2.2 Localisation
+- **Interface** : Traduction complète
+- **Contenus** : Adaptation culturelle
+- **Formats** : Dates, devises, mesures locales
+- **Support** : Multilingue
+- **Documentation** : Guides traduits
+
+### 20.3 Inclusion Financière
+
+#### 20.3.1 Moyens de Paiement Inclusifs
+- **Mobile Money** : Orange, MTN, Moov (85% population)
+- **Cash** : Paiement à la livraison possible
+- **Crédit** : Options de paiement différé
+- **Microfinance** : Partenariats locaux
+
+#### 20.3.2 Tarification Accessible
+- **Commission progressive** : Réduite pour petits montants
+- **Freemium** : Fonctions de base gratuites
+- **Promotions** : Premiers utilisateurs
+- **Bourses** : Programme pour agriculteurs précaires
+
+---
+
 ## Conclusion
 
 Ce cahier des charges définit une vision complète pour la plateforme AGNexum, de sa conception technique à sa mise en œuvre opérationnelle. Le projet vise à révolutionner l'accès aux équipements agricoles en Afrique de l'Ouest grâce à une approche technologique moderne et adaptée aux réalités locales.
@@ -908,7 +1612,7 @@ Le développement en phases permet de valider le marché rapidement tout en cons
 
 ---
 
-**Document Version** : 1.0  
-**Date** : Janvier 2025  
-**Auteur** : Équipe AGNexum  
-**Statut** : Version finale pour développement
+**Document Version** : 2.0
+**Date** : Décembre 2025
+**Auteur** : Équipe AGNexum
+**Statut** : Version enrichie complète
