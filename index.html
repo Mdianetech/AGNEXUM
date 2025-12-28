@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    
+    <!-- Responsive Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="AGNexum" />
+    
+    <!-- Performance and Optimization -->
+    <meta name="theme-color" content="#2E7D32" />
+    <meta name="msapplication-TileColor" content="#2E7D32" />
+    <meta name="msapplication-navbutton-color" content="#2E7D32" />
+    
+    <!-- SEO Meta Tags -->
+    <title>AGNexum - Location de Matériel Agricole en Afrique de l'Ouest</title>
+    <meta name="description" content="Plateforme de location de matériel agricole pour l'Afrique de l'Ouest. Connectez-vous avec des agriculteurs, propriétaires d'équipements, fabricants et financeurs." />
+    <meta name="keywords" content="agriculture, matériel agricole, location, Guinée, Afrique de l'Ouest, tracteur, équipement" />
+    <meta name="author" content="AGNexum" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="AGNexum - Location de Matériel Agricole" />
+    <meta property="og:description" content="La première plateforme de location de matériel agricole en Afrique de l'Ouest" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://agnexum.com" />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:locale" content="fr_FR" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AGNexum - Location de Matériel Agricole" />
+    <meta name="twitter:description" content="La première plateforme de location de matériel agricole en Afrique de l'Ouest" />
+    <meta name="twitter:image" content="/twitter-image.jpg" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.pexels.com" />
+    
+    <!-- DNS Prefetch for better performance -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://images.pexels.com" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    
+    <!-- Fallback for browsers that don't support preload -->
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" />
+    </noscript>
+    
+    <!-- Critical CSS for above-the-fold content -->
+    <style>
+      /* Critical CSS for initial page load */
+      html {
+        font-family: 'Roboto', system-ui, sans-serif;
+        scroll-behavior: smooth;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #fafafa;
+        color: #424242;
+        font-size: 16px;
+        line-height: 1.5;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Loading spinner */
+      .loading-spinner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e0e0e0;
+        border-top: 4px solid #2E7D32;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        z-index: 9999;
+      }
+      
+      @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+      
+      /* Hide loading spinner when app loads */
+      #root:not(:empty) + .loading-spinner {
+        display: none;
+      }
+      
+      /* Prevent flash of unstyled content */
+      #root {
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+      }
+      
+      #root.loaded {
+        opacity: 1;
+      }
+      
+      /* iOS safe area support */
+      @supports (padding: env(safe-area-inset-top)) {
+        html {
+          padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+      }
+      
+      /* Responsive images */
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+      
+      /* Focus styles for accessibility */
+      *:focus {
+        outline: 2px solid #2E7D32;
+        outline-offset: 2px;
+      }
+      
+      /* Remove focus outline for mouse users */
+      .js-focus-visible *:focus:not(.focus-visible) {
+        outline: none;
+      }
+    </style>
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AGNexum",
+      "description": "Plateforme de location de matériel agricole pour l'Afrique de l'Ouest",
+      "url": "https://agnexum.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://agnexum.com/equipment?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!-- Loading spinner fallback -->
+    <div class="loading-spinner"></div>
+    
+    <!-- Focus visible polyfill for better accessibility -->
+    <script>
+      // Apply focus-visible polyfill
+      (function() {
+        var hadKeyboardEvent = true;
+        var keyboardThrottleTimeout = 0;
+        
+        function onKeyDown() {
+          hadKeyboardEvent = true;
+        }
+        
+        function onPointerDown() {
+          hadKeyboardEvent = false;
+        }
+        
+        function onFocus(e) {
+          if (hadKeyboardEvent || e.target.matches(':focus-visible')) {
+            e.target.classList.add('focus-visible');
+          }
+        }
+        
+        function onBlur(e) {
+          e.target.classList.remove('focus-visible');
+        }
+        
+        document.addEventListener('keydown', onKeyDown, true);
+        document.addEventListener('mousedown', onPointerDown, true);
+        document.addEventListener('pointerdown', onPointerDown, true);
+        document.addEventListener('touchstart', onPointerDown, true);
+        document.addEventListener('focus', onFocus, true);
+        document.addEventListener('blur', onBlur, true);
+        
+        document.body.classList.add('js-focus-visible');
+      })();
+      
+      // Show app when loaded
+      window.addEventListener('load', function() {
+        document.getElementById('root').classList.add('loaded');
+      });
+    </script>
+    
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
